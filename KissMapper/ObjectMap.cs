@@ -1,41 +1,33 @@
 ﻿using System.Reflection;
+using System.Reflection.PortableExecutable;
 
 namespace KissMap
 {
-      public class PropertyMap
+    public class ObjectMap<TSrc,TDst>
     {
-        private string _srcProp;
-        private string _dstProp;
-
-        public PropertyMap(string srcKey, string dstKey)
-        {
-            _srcProp = srcKey;
-            _dstProp = dstKey;
-        }
-        public void Apply(object src, object dst)
-        {
-            var srcProp = src.GetType().GetProperty(_srcProp);
-            var dstProp = dst.GetType().GetProperty(_dstProp);
-
-            var value = srcProp.GetValue(src, null);
-            value = Convert.ChangeType(value, dstProp.PropertyType);
-
-            dstProp.SetValue(dst, value, null);
-        }
-    }
-    public class ObjectMap
-    {
-        private IEnumerable<PropertyMap> _propertyMaps = new List<PropertyMap>();
+        private IEnumerable<PropertyMap<TSrc, TDst>> _propertyMaps = new List<PropertyMap<TSrc, TDst>>();
         public void Register(string prop)
         {
             Register(prop, prop);
         }
         public void Register(string srcProp, string dstProp)
         {
-            _propertyMaps = _propertyMaps.Append(new PropertyMap(srcProp, dstProp));
+            _propertyMaps = _propertyMaps.Append(new PropertyMap<TSrc, TDst>(srcProp, dstProp));
+        }
+        public void Register(Func<TSrc, object> reader, string dstPropname)
+        {
+            _propertyMaps = _propertyMaps.Append(new PropertyMap<TSrc, TDst>(reader, dstPropname));
+        }
+        public void Register(Func<TSrc, object> reader, Action<TDst, object> writer)
+        {
+            _propertyMaps = _propertyMaps.Append(new PropertyMap<TSrc, TDst>(reader, writer));
+        }
+        public void Register(string srcProp, Action<TDst, object> writer)
+        {
+            _propertyMaps = _propertyMaps.Append(new PropertyMap<TSrc, TDst>(srcProp, writer));
         }
 
-        public object CopyTo(object src, object dst)
+        public object CopyTo(TSrc src, TDst dst)
         {
             foreach (var prop in _propertyMaps)
             {
@@ -44,7 +36,7 @@ namespace KissMap
             return dst;
         }
 
-        public TDst Create<TDst>(object src)
+        public TDst CreateFrom(TSrc src)
         {
             TDst dst = Activator.CreateInstance<TDst>();
             foreach (var prop in _propertyMaps)
