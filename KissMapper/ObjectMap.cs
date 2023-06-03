@@ -3,9 +3,9 @@ using System.Reflection.PortableExecutable;
 
 namespace KissMap
 {
-    public class ObjectMap<TSrc,TDst>
+    public class ObjectMap<TSrc, TDst> : IObjectMap<TSrc, TDst>
     {
-        private IEnumerable<PropertyMap<TSrc, TDst>> _propertyMaps = new List<PropertyMap<TSrc, TDst>>();
+        private IEnumerable<IPropertyMap<TSrc, TDst>> _propertyMaps = new List<IPropertyMap<TSrc, TDst>>();
         public void Register(string prop)
         {
             Register(prop, prop);
@@ -16,15 +16,15 @@ namespace KissMap
         }
         public void Register(Func<TSrc, object> reader, string dstPropname)
         {
-            _propertyMaps = _propertyMaps.Append(new PropertyMap<TSrc, TDst>(reader, dstPropname));
+            _propertyMaps = _propertyMaps.Append(new PropertyReadMap<TSrc, TDst>(reader, dstPropname));
         }
         public void Register(Func<TSrc, object> reader, Action<TDst, object> writer)
         {
-            _propertyMaps = _propertyMaps.Append(new PropertyMap<TSrc, TDst>(reader, writer));
+            _propertyMaps = _propertyMaps.Append(new PropertyReadWriteMap<TSrc, TDst>(reader, writer));
         }
         public void Register(string srcProp, Action<TDst, object> writer)
         {
-            _propertyMaps = _propertyMaps.Append(new PropertyMap<TSrc, TDst>(srcProp, writer));
+            _propertyMaps = _propertyMaps.Append(new PropertyWriteMap<TSrc, TDst>(srcProp, writer));
         }
 
         public object CopyTo(TSrc src, TDst dst)
