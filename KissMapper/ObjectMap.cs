@@ -27,22 +27,18 @@ namespace KissMap
             _propertyMaps = _propertyMaps.Append(new PropertyWriteMap<TSrc, TDst>(srcProp, writer));
         }
 
-        public object CopyTo(TSrc src, TDst dst)
+        public void CopyTo(TSrc src, TDst dst)
         {
             foreach (var prop in _propertyMaps)
             {
                 prop.Apply(src, dst);
             }
-            return dst;
         }
 
         public TDst CreateFrom(TSrc src)
         {
             TDst dst = Activator.CreateInstance<TDst>();
-            foreach (var prop in _propertyMaps)
-            {
-                prop.Apply(src, dst);
-            }
+            CopyTo(src, dst);
             return dst;
         }
     }

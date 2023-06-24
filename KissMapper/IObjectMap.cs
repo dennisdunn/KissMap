@@ -2,7 +2,7 @@
 {
     public interface IObjectMap<TSrc, TDst>
     {
-        object CopyTo(TSrc src, TDst dst);
+        void CopyTo(TSrc src, TDst dst);
         TDst CreateFrom(TSrc src);
         void Register(string prop);
         void Register(string srcProp, string dstProp);
